@@ -8,5 +8,10 @@ class UomUom(models.Model):
     _inherit = "uom.uom"
 
     ids_name = fields.Char(
-        "IDS name", help="Code of this UOM according to the IDS protocol"
+        "IDS name", help="Code of this UOM according to the IDS protocol."
+    )
+    ids_name_alternative = fields.Char(
+        "Alternative IDS name",
+        help="If you encounter webshops using wrong "
+        "UOM names for IDS, fill them in here, separated by spaces",
     )

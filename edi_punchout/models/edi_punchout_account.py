@@ -80,6 +80,10 @@ class EdiPunchoutAccount(models.Model):
                     % this.custom_url_parameters,
                 )
 
+    def _company(self):
+        """Return self's company if it exists or the currently active company"""
+        return self.company_id or self.env.company
+
     def _handle_return(self, data, order=None):
         """
         Create a draft purchase order from the products we got passed from the webshop
@@ -114,7 +118,7 @@ class EdiPunchoutAccount(models.Model):
         self.ensure_one()
         order = objectify.fromstring(shopping_cart.encode("utf8"))
         return {
-            "company_id": self.env.company.id,
+            "company_id": self._company().id,
             "partner_id": self.partner_id.id,
             "partner_ref": getattr(
                 order.Order.OrderInfo,
@@ -142,7 +146,7 @@ class EdiPunchoutAccount(models.Model):
                 self.env["res.currency"].search(
                     [("name", "=", order.Order.OrderInfo.Cur.text)]
                 )
-                or self.env.company.currency_id
+                or self._company().currency_id
             ).id,
             "order_line": [
                 (0, 0, self._ids_prepare_purchase_order_line(product, order_item))
@@ -172,7 +176,7 @@ class EdiPunchoutAccount(models.Model):
                 self.env["res.currency"].search(
                     [("name", "=", order_item.getparent().OrderInfo.Cur.text)]
                 )
-                or self.env.company.currency_id
+                or self._company().currency_id
             ).id,
         }
 
@@ -206,11 +210,11 @@ class EdiPunchoutAccount(models.Model):
                                 ("type_tax_use", "=", "sale"),
                                 ("amount", "=", float(order_item.VAT)),
                                 ("price_include", "=", False),
-                                ("company_id", "=", self.env.company.id),
+                                ("company_id", "=", self._company().id),
                             ],
                             limit=1,
                         )
-                        or self.env.company.account_sale_tax_id
+                        or self._company().account_sale_tax_id
                     ).ids,
                 )
             ],
@@ -226,11 +230,11 @@ class EdiPunchoutAccount(models.Model):
                                 ("type_tax_use", "=", "purchase"),
                                 ("amount", "=", float(order_item.VAT)),
                                 ("price_include", "=", False),
-                                ("company_id", "=", self.env.company.id),
+                                ("company_id", "=", self._company().id),
                             ],
                             limit=1,
                         )
-                        or self.env.company.account_purchase_tax_id
+                        or self._company().account_purchase_tax_id
                     ).ids,
                 )
             ],
@@ -258,7 +262,7 @@ class EdiPunchoutAccount(models.Model):
                                     )
                                 ]
                             )
-                            or self.env.company.currency_id
+                            or self._company().currency_id
                         ).id,
                     },
                 )
@@ -269,9 +273,24 @@ class EdiPunchoutAccount(models.Model):
         """
         Return an existing UOM, or create one based on PriceBasis
         """
-        uom = self.env["uom.uom"].search(
-            [("ids_name", "=", order_item.QU), ("uom_type", "=", "reference")]
-        ) or self.env.ref("uom.product_uom_unit")
+        uom = (
+            self.env["uom.uom"].search(
+                [("ids_name", "=", order_item.QU), ("uom_type", "=", "reference")]
+            )
+            or self.env["uom.uom"].search(
+                [
+                    "|",
+                    "|",
+                    "|",
+                    ("ids_name_alternative", "=", order_item.QU),
+                    ("ids_name_alternative", "=like", "%% %s" % order_item.QU),
+                    ("ids_name_alternative", "=like", "%s %%" % order_item.QU),
+                    ("ids_name_alternative", "=like", "%% %s %%" % order_item.QU),
+                    ("uom_type", "=", "reference"),
+                ]
+            )
+            or self.env.ref("uom.product_uom_unit")
+        )
         price_amount = float(getattr(order_item, "PriceBasis", "1"))
         if price_amount != 1:
             uom = self.env["uom.uom"].search(
@@ -309,7 +328,7 @@ class EdiPunchoutAccount(models.Model):
             limit=1,
         ) or Product.sudo().create(self._ids_parse_order_item(order_item))
         self._ids_update_product(product, order_item)
-        if product.company_id and self.env.company != product.company_id:
+        if product.company_id and self._company() != product.company_id:
             product.company_id = False
         return product
 
@@ -348,7 +367,7 @@ class EdiPunchoutAccount(models.Model):
         """
         self.ensure_one()
         return {
-            "company_id": self.env.company.id,
+            "company_id": self._company().id,
             "partner_id": self.partner_id.id,
             "order_line": [
                 (0, 0, self._oci_prepare_purchase_order_line(product, product_dict))
@@ -416,6 +435,6 @@ class EdiPunchoutAccount(models.Model):
             ],
             limit=1,
         ) or Product.sudo().create(self._oci_parse_product_dict(product_dict))
-        if product.company_id and self.env.company != product.company_id:
+        if product.company_id and self._company() != product.company_id:
             product.company_id = False
         return product

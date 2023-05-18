@@ -1,6 +1,6 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from lxml import etree
+from lxml import etree, objectify
 
 from odoo.tests.common import Form, TransactionCase
 
@@ -9,6 +9,7 @@ class TestEdiPunchout(TransactionCase):
     def setUp(self):
         super().setUp()
         self.ids_account = self.env.ref("edi_punchout.edi_punchout_account_ids")
+        self.oci_account = self.env.ref("edi_punchout.edi_punchout_account_oci")
         self.product = self.env["product.product"].create(
             {
                 "name": "Punchout test product",
@@ -55,4 +56,42 @@ class TestEdiPunchout(TransactionCase):
         self.assertEqual(
             another_purchase_order.order_line.product_id.seller_ids.product_code,
             "424242",
+        )
+        another_purchase_order.button_approve()
+        self.assertEqual(another_purchase_order.state, "ids_send")
+
+    def test_ids_alternative_uom(self):
+        """
+        Test that we find an UOM with the wrong name when we set it as alternative name
+        """
+        order_item = objectify.fromstring("<OrderItem><QU>unknown_uom</QU></OrderItem>")
+        uom = self.env.ref("uom.product_uom_meter")
+        uom.ids_name_alternative = False
+        self.assertEqual(
+            self.ids_account._ids_get_or_create_uom(order_item),
+            self.env.ref("uom.product_uom_unit"),
+        )
+        uom.ids_name_alternative = "unknown_uom"
+        self.assertEqual(self.ids_account._ids_get_or_create_uom(order_item), uom)
+        uom.ids_name_alternative = "some_other_uom unknown_uom"
+        self.assertEqual(self.ids_account._ids_get_or_create_uom(order_item), uom)
+        uom.ids_name_alternative = "some_other_uom unknown_uom and another"
+        self.assertEqual(self.ids_account._ids_get_or_create_uom(order_item), uom)
+        uom.ids_name_alternative = "unknown_uom and another"
+        self.assertEqual(self.ids_account._ids_get_or_create_uom(order_item), uom)
+
+    def test_oci(self):
+        """Test an OCI roundtrip"""
+        new_purchase_order = self.oci_account._handle_return(
+            [
+                {
+                    "QUANTITY": 1,
+                    "PRICE": 42,
+                    "DESCRIPTION": "testproduct",
+                    "VENDORMAT": "424242",
+                }
+            ]
+        )
+        self.assertEqual(
+            new_purchase_order.order_line.product_id, self.product,
         )

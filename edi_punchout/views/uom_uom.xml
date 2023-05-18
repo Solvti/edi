@@ -10,6 +10,7 @@
         <group position="inside">
             <group name="edi_punchout">
                 <field name="ids_name" />
+                <field name="ids_name_alternative" groups="base.group_no_one" />
             </group>
         </group>
     </field>
