@@ -54,7 +54,8 @@ class EdiPunchoutController(http.Controller):
             == transaction.client_key
         ):
             http.request.uid = transaction.create_uid.id
-            transaction = transaction.with_user(transaction.create_uid)
+            http.request.env.company = transaction.account_id.company_id
+            transaction = transaction.with_user(transaction.create_uid).with_context(allowed_company_ids=http.request.env.company.ids)
             transaction.request = json.dumps(http.request.httprequest.form)
             account = transaction.account_id
             account.check_access_rights("read")
