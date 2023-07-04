@@ -4,7 +4,8 @@
 import json
 import traceback
 
-from odoo import http
+from odoo import http, _
+from werkzeug.exceptions import BadRequest
 
 
 class EdiPunchoutController(http.Controller):
@@ -110,7 +111,11 @@ class EdiPunchoutController(http.Controller):
         return self._redirect_order(order)
 
     def _ids_return_hook(self, account, order=None):
-        order = account._handle_return(
-            http.request.httprequest.form["warenkorb"], order
+        shopping_cart = http.request.httprequest.form.get("warenkorb",
+            http.request.httprequest.form.get("Warenkorb")
         )
+        if shopping_cart is None:
+            raise BadRequest(_("The request form is missing the shopping cart key!"))
+
+        order = account._handle_return(shopping_cart, order)
         return self._redirect_order(order)
