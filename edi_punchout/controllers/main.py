@@ -3,9 +3,12 @@
 
 import json
 import traceback
+import pytz
 
 from odoo import http, _
 from werkzeug.exceptions import BadRequest
+from werkzeug.utils import dump_cookie
+from datetime import datetime
 
 
 class EdiPunchoutController(http.Controller):
@@ -25,13 +28,15 @@ class EdiPunchoutController(http.Controller):
             )
         )
         response = http.request.make_response(transaction.transaction_id)
-        response.set_cookie(
+        response.headers.add('Set-Cookie', dump_cookie(
             "edi_punchout_client_key_%s" % transaction.id,
             transaction.client_key,
-            max_age=3600,
+            expires=self._current_timestamp()+3600,
             httponly=True,
-            samesite=None,
-        )
+            secure=True,
+        ) + "; SameSite=None")
+        # werkzeug 0.14 does not support setting SameSite to 'None'
+        # https://github.com/pallets/werkzeug/issues/1549
         return response
 
     @http.route(
@@ -119,3 +124,13 @@ class EdiPunchoutController(http.Controller):
 
         order = account._handle_return(shopping_cart, order)
         return self._redirect_order(order)
+
+    @staticmethod
+    def _current_timestamp():
+        user_tz = pytz.timezone(http.request.env.user.tz if http.request.env.user.tz else "utc")
+        return (
+            (pytz.utc.localize(datetime.now()))
+            .astimezone(user_tz)
+            .replace(tzinfo=None)
+            .timestamp()
+        )
