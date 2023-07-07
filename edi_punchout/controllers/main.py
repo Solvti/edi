@@ -5,7 +5,7 @@ import json
 import traceback
 import pytz
 
-from odoo import http, _
+from odoo import http, _, service
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import dump_cookie
 from datetime import datetime
@@ -59,8 +59,13 @@ class EdiPunchoutController(http.Controller):
             )
             == transaction.client_key
         ):
-            http.request.uid = transaction.create_uid.id
             http.request.env.company = transaction.account_id.company_id
+            http.request.session.update(
+                http.root.session_store.get(transaction.session_id)
+            )
+            http.request.session.session_token = service.security.compute_session_token(
+                http.request.session, http.request.env
+            )
             transaction = transaction.with_user(transaction.create_uid).with_context(allowed_company_ids=http.request.env.company.ids)
             transaction.request = json.dumps(http.request.httprequest.form)
             account = transaction.account_id
@@ -116,9 +121,7 @@ class EdiPunchoutController(http.Controller):
         return self._redirect_order(order)
 
     def _ids_return_hook(self, account, order=None):
-        shopping_cart = http.request.httprequest.form.get("warenkorb",
-            http.request.httprequest.form.get("Warenkorb")
-        )
+        shopping_cart = http.request.httprequest.form.get("warenkorb")
         if shopping_cart is None:
             raise BadRequest(_("The request form is missing the shopping cart key!"))
 
