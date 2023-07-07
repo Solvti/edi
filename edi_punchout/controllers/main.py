@@ -59,6 +59,7 @@ class EdiPunchoutController(http.Controller):
             )
             == transaction.client_key
         ):
+            http.request.uid = transaction.create_uid.id
             http.request.env.company = transaction.account_id.company_id
             http.request.session.update(
                 http.root.session_store.get(transaction.session_id)
