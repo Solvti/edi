@@ -7,8 +7,15 @@ from odoo import api, fields, models
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
+    READONLY_STATES = {
+        'purchase': [('readonly', True)],
+        'ids_send': [('readonly', True)],
+        'done': [('readonly', True)],
+        'cancel': [('readonly', True)],
+    }
     ids_send_form = fields.Html(compute="_compute_ids_send_form", sanitize=False)
-    state = fields.Selection(selection_add=[("ids_send", "Send to supplier")])
+    state = fields.Selection(selection_add=[("ids_send", "Send to supplier"),("purchase",)])
+    partner_id = fields.Many2one(states=READONLY_STATES)
 
     @api.depends("order_line.product_id", "order_line.product_qty")
     def _compute_ids_send_form(self):
@@ -41,8 +48,9 @@ class PurchaseOrder(models.Model):
         """
         Set to state ids_send when approving and there is an ids account
         """
-        result = super().button_approve(force=force)
-        self.filtered(
-            lambda x: x.state == "purchase" and x._ids_get_account() and not force
-        ).write({"state": "ids_send"})
+        ids_orders = self.filtered(
+            lambda x: x._ids_get_account() and x.state != "ids_send"
+        )
+        ids_orders.write({"state": "ids_send"})
+        result = super(PurchaseOrder, self-ids_orders).button_approve(force=force)
         return result
