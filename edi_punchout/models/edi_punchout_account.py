@@ -107,8 +107,7 @@ class EdiPunchoutAccount(models.Model):
                 + [order_line_vals for order_line_vals in vals["order_line"]],
             }
         )
-        # write state after deleting lines, as we can't delete lines in state purchase
-        order.write({"state": "purchase" if order.state == "ids_send" else order.state})
+        order.button_approve()
 
     def _ids_prepare_purchase_order(self, shopping_cart):
         """

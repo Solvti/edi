@@ -58,7 +58,7 @@
                 onclick="event.preventDefault(); var $form = jQuery(this.form); $hookurl = $form.find('[name=hookurl]'); jQuery.ajax({url: '/edi_punchout/get_transaction', data: {account_id: jQuery(this).data('accountId'), order_id: jQuery(this).data('orderId')}}).done(function(data) { $hookurl.val(String(new window.URL('/edi_punchout/return/'+data, $hookurl.val()))); $form.submit() }); return false"
                 t-att-data-account-id="account.id"
                 t-att-data-order-id="order.id"
-            >Send to supplier webshop</button>
+            >Send To Supplier Webshop</button>
         </form>
     </template>
 
