@@ -159,7 +159,7 @@ msgstr "Beschaffungsauftrag"
 
 #. module: edi_punchout
 #: model_terms:ir.ui.view,arch_db:edi_punchout.ids_send_cart_form
-msgid "Send to supplier webshop"
+msgid "Send To Supplier Webshop"
 msgstr "An Lieferantenwebshop senden"
 
 #. module: edi_punchout
