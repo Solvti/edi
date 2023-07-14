@@ -168,6 +168,11 @@ msgid "Session"
 msgstr "Session"
 
 #. module: edi_punchout
+#: model_terms:ir.ui.view,arch_db:edi_punchout.view_purchase_order_form
+msgid "Skip Sending"
+msgstr "Senden überspringen"
+
+#. module: edi_punchout
 #: model_terms:ir.ui.view,arch_db:edi_punchout.view_edi_punchout_account_kanban
 msgid "Start a purchase"
 msgstr "Einkauf starten"
