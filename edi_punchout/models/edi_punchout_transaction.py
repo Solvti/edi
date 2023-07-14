@@ -6,7 +6,7 @@ from uuid import uuid4
 from odoo import fields, models
 
 
-class EdiPunchoutTransaction(models.TransientModel):
+class EdiPunchoutTransaction(models.Model):
     _name = "edi.punchout.transaction"
     _description = "A transaction for a punchout session"
     _rec_name = "transaction_id"

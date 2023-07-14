@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 r_edi_punchout_account,Read OCI accounts,model_edi_punchout_account,purchase.group_purchase_user,1,0,0,0
 crud_edi_punchout_account,CRUD OCI accounts,model_edi_punchout_account,purchase.group_purchase_manager,1,1,1,1
+cru_edi_punchout_transaction,CRU OCI transactions,model_edi_punchout_transaction,purchase.group_purchase_user,1,1,1,0
+crud_edi_punchout_transaction,CRUD OCI transactions,model_edi_punchout_transaction,base.group_system,1,1,1,1

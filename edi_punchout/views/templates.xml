@@ -14,9 +14,6 @@
                 <OrderInfo>
                     <InquiryNo><t t-esc="object.name" /></InquiryNo>
                     <PartNo><t t-esc="object.name" /></PartNo>
-                    <OfferNo t-if="object.partner_ref"><t
-                            t-esc="object.partner_ref"
-                        /></OfferNo>
                     <ModeOfShipment t-translation="off">Lieferung</ModeOfShipment>
                     <Cur><t t-esc="object.currency_id.name" /></Cur>
                     <ZusatzText />

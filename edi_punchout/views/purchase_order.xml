@@ -9,6 +9,7 @@
     <field name="arch" type="xml">
         <field name="state" position="before">
             <field name="ids_send_form" states="ids_send" />
+            <button name="button_approve" type="object" class="btn btn-warning" states="ids_send" string="Skip Sending" id="skip_confirm"/>
         </field>
     </field>
 </record>
