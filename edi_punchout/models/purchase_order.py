@@ -54,3 +54,11 @@ class PurchaseOrder(models.Model):
         ids_orders.write({"state": "ids_send"})
         result = super(PurchaseOrder, self-ids_orders).button_approve(force=force)
         return result
+
+class PurchaseOrderLine(models.Model):
+    _inherit = "purchase.order.line"
+
+    def _get_most_recent_seller(self):
+        self.ensure_one()
+        sellers = sorted(self.product_id.seller_ids.filtered(lambda x: x.name == self.order_id.partner_id), key=lambda x: x.create_date)
+        return sellers[-1] if sellers else self.env["product.supplierinfo"]
