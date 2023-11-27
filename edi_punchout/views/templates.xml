@@ -21,7 +21,7 @@
                 <OrderItem t-foreach="object.order_line" t-as="order_line">
                     <ItemChara t-translation="off">normal</ItemChara>
                     <ArtNo><t
-                            t-esc="sorted(order_line.product_id.seller_ids.filtered(lambda x: x.name == object.partner_id), key=lambda x: x.create_date)[-1].product_code"
+                            t-esc="(sorted(order_line.product_id.seller_ids.filtered(lambda x: x.name == object.partner_id), key=lambda x: x.create_date) or [''])[-1].product_code"
                         /></ArtNo>
                     <Qty><t
                             t-esc="order_line.product_qty * order_line.product_uom.factor_inv"
